@@ -1,22 +1,22 @@
-# VAR
+# LET
 
-A tiny interpreter in Elm that adds variable expressions and environments, showing how variable lookup makes evaluation depend on context.
+A tiny interpreter in Elm that adds let expressions and shows how environments support local bindings, scope, and variable shadowing.
 
-VAR builds on [IF](https://blog.tinyinterpreters.dev/posts/if) by allowing programs to refer to predefined values by name.
+LET builds on [VAR](https://github.com/tinyinterpreters/var) by allowing programs to introduce names of their own.
 
-Read [VAR: Adding Variables and Environments to a Tiny Interpreter in Elm](https://blog.tinyinterpreters.dev/posts/var) for a guided explanation of how it works.
+Read [LET: Adding Local Bindings to a Tiny Interpreter in Elm](https://blog.tinyinterpreters.dev/posts/let) for a guided explanation of how it works.
 
 ```mermaid
 flowchart TD
-    A["x"] -->|parse| B["Program (Var #quot;x#quot;)"]
-    B -->|evaluate| C["VNumber 10"]
+    A["let a = 5 in -(a, 3)"] -->|parse| B["Program (Let #quot;a#quot; (Const 5) (Diff (Var #quot;a#quot;) (Const 3)))"]
+    B -->|evaluate| C["VNumber 2"]
 ```
 
 ## Usage
 
 You'll need [Nix](https://zero-to-nix.com/start/install/) with flakes enabled.
 
-Enter the development environment and start the Elm REPL:
+From the repository root, enter the development environment and start the Elm REPL:
 
 ```bash
 nix develop
@@ -26,59 +26,52 @@ elm repl
 Import the interpreter and run a program:
 
 ```elm
-import VAR.Interpreter as I
+import LET.Interpreter as I
 
-I.run "x"
--- Ok (VNumber 10)
+I.run "let a = 5 in -(a, 3)"
+-- Ok (VNumber 2)
 ```
 
 ## Language
 
-VAR supports the constants, difference expressions, `zero?` expressions, and conditional expressions introduced by the previous interpreters.
+LET supports the constants, difference expressions, `zero?` expressions, conditional expressions, and variable expressions introduced by the previous interpreters.
 
-It also adds variable expressions. An identifier contains one or more lowercase letters:
-
-```txt
-x
-value
-onetwothree
-```
-
-The words `if`, `then`, and `else` are reserved and cannot be used as variable names.
-
-Variables can also appear inside larger expressions:
-
-```elm
-I.run "if zero?(-(5, v)) then i else v"
--- Ok (VNumber 1)
-```
-
-## Variables and environments
-
-The AST for a variable expression stores the name being referenced:
-
-```elm
-Var "x"
-```
-
-It does not store the value associated with that name. The evaluator finds the value by looking up the name in an environment.
-
-VAR evaluates programs using this initial environment:
+It also adds let expressions:
 
 ```txt
-x ↦ VNumber 10
-v ↦ VNumber 5
-i ↦ VNumber 1
+let name = expression in body
 ```
 
-Evaluating `Var "x"` looks up `x` and returns `VNumber 10`.
+The expression between `=` and `in` is the **bound expression**. The expression after `in` is the **body**. Both can be any expression supported by the language, including another `let`.
 
-A valid identifier that is not present in the environment produces an identifier-not-found runtime error.
+A binding can hold either a number or a Boolean:
 
-Only variable expressions inspect the environment directly, but the evaluator passes the environment through every recursive call so that variables can appear anywhere an expression is expected.
+```elm
+I.run "let a = zero?(0) in if a then 2 else 3"
+-- Ok (VNumber 2)
+```
 
-VAR does not extend the environment during evaluation. Programs can refer to predefined names, but they cannot introduce new names themselves.
+An identifier contains one or more lowercase letters. The words `if`, `then`, `else`, `let`, and `in` are reserved and cannot be used as identifiers.
+
+The initial environment still provides `x = 10`, `v = 5`, and `i = 1`.
+
+## Local bindings and scope
+
+The evaluator first evaluates the bound expression in the current environment. It then extends that environment with the new binding and evaluates the body. The body's value becomes the value of the complete let expression.
+
+The new binding's scope is the body. It is unavailable in its own bound expression, where a reference to the same name uses the surrounding environment.
+
+An inner binding can shadow an outer binding without changing the original environment:
+
+```elm
+I.run "let a = 5 in -(let a = 3 in a, a)"
+-- Ok (VNumber -2)
+```
+
+The inner body uses `a = 3`. The second operand of the difference still uses `a = 5`, so the result is `3 - 5`.
+
+The bound expression is evaluated even when the body never uses the binding. If it fails, evaluation stops with that error and the body is not evaluated.
 
 ## Tiny Interpreters
 
-VAR is part of [Tiny Interpreters](https://blog.tinyinterpreters.dev), where we learn how programming languages work by building tiny interpreters.
+LET is part of [Tiny Interpreters](https://blog.tinyinterpreters.dev), where we learn how programming languages work by building tiny interpreters.
