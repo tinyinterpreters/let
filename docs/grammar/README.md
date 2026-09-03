@@ -16,12 +16,14 @@ Expr     ::= Const
            | Zero
            | If
            | Var
+           | Let
 ```
 
 referenced by:
 
 * Diff
 * If
+* Let
 * Program
 * Zero
 
@@ -85,6 +87,18 @@ referenced by:
 
 * Expr
 
+**Let:**
+
+![Let](diagram/Let.svg)
+
+```
+Let      ::= 'let' Id '=' Expr 'in' Expr
+```
+
+referenced by:
+
+* Expr
+
 **Number:**
 
 ![Number](diagram/Number.svg)
@@ -107,6 +121,7 @@ Id       ::= [a-z]+
 
 referenced by:
 
+* Let
 * Var
 
 ## 
