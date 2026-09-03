@@ -101,6 +101,9 @@ runExpr expr env =
                 Nothing ->
                     Err <| IdentifierNotFound name
 
+        Let _ _ _ ->
+            Ok <| VNumber 0
+
 
 evalDiff : Value -> Value -> Result RuntimeError Value
 evalDiff va vb =

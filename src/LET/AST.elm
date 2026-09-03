@@ -16,6 +16,7 @@ type Expr
     | Zero Expr
     | If Expr Expr Expr
     | Var Id
+    | Let Id Expr Expr
 
 
 type alias Number =
