@@ -101,8 +101,12 @@ runExpr expr env =
                 Nothing ->
                     Err <| IdentifierNotFound name
 
-        Let _ _ _ ->
-            Ok <| VNumber 0
+        Let name bound body ->
+            runExpr bound env
+                |> Result.andThen
+                    (\vBound ->
+                        runExpr body (Env.extend name vBound env)
+                    )
 
 
 evalDiff : Value -> Value -> Result RuntimeError Value
