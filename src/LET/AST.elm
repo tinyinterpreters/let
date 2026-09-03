@@ -1,4 +1,4 @@
-module VAR.AST exposing
+module LET.AST exposing
     ( Expr(..)
     , Id
     , Number

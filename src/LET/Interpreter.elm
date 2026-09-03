@@ -1,4 +1,4 @@
-module VAR.Interpreter exposing
+module LET.Interpreter exposing
     ( Error(..)
     , RuntimeError(..)
     , Type(..)
@@ -6,9 +6,9 @@ module VAR.Interpreter exposing
     , run
     )
 
-import VAR.AST as AST exposing (..)
-import VAR.Env as Env
-import VAR.Parser as P
+import LET.AST as AST exposing (..)
+import LET.Env as Env
+import LET.Parser as P
 
 
 type Value

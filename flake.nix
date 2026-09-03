@@ -6,7 +6,7 @@
       in
       {
         devShells.default = pkgs.mkShell {
-          name = "var";
+          name = "let";
 
           packages = [
             pkgs.elmPackages.elm

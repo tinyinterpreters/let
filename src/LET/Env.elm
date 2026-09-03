@@ -1,4 +1,4 @@
-module VAR.Env exposing (Env, empty, extend, lookup)
+module LET.Env exposing (Env, empty, extend, lookup)
 
 import Dict exposing (Dict)
 

@@ -1,13 +1,13 @@
-module Test.VAR.Interpreter exposing (suite)
+module Test.LET.Interpreter exposing (suite)
 
 import Expect
+import LET.Interpreter as I exposing (Value(..))
 import Test exposing (Test, describe, test)
-import VAR.Interpreter as I exposing (Value(..))
 
 
 suite : Test
 suite =
-    describe "VAR.Interpreter"
+    describe "LET.Interpreter"
         [ describe "run" <|
             List.map (testRun I.run)
                 -- Constant expressions

@@ -1,8 +1,8 @@
-module VAR.Parser exposing (Error, parse)
+module LET.Parser exposing (Error, parse)
 
+import LET.AST as AST exposing (..)
+import LET.Lexer as L
 import Parser as P exposing ((|.), (|=), Parser)
-import VAR.AST as AST exposing (..)
-import VAR.Lexer as L
 
 
 type alias Error =
