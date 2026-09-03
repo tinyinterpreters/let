@@ -30,6 +30,7 @@ expr =
         , zeroExpr
         , ifExpr
         , varExpr
+        , letExpr
         ]
 
 
@@ -76,7 +77,23 @@ ifExpr =
 
 varExpr : Parser Expr
 varExpr =
-    P.map Var (L.id keywords)
+    P.map Var id
+
+
+letExpr : Parser Expr
+letExpr =
+    P.succeed Let
+        |. L.keyword "let"
+        |= id
+        |. L.symbol "="
+        |= P.lazy (\_ -> expr)
+        |. L.keyword "in"
+        |= P.lazy (\_ -> expr)
+
+
+id : Parser Id
+id =
+    L.id keywords
 
 
 keywords : List String
@@ -90,5 +107,7 @@ keywords =
     --
     [ "else"
     , "if"
+    , "in"
+    , "let"
     , "then"
     ]

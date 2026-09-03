@@ -85,10 +85,75 @@ suite =
 
                 -- Variables
                 , ( "onetwothree", Just (Program (Var "onetwothree")) )
+                , ( "zero", Just (Program (Var "zero")) )
+
+                --- Reserved words
                 , ( "else", Nothing )
                 , ( "if", Nothing )
-                , ( "let", Just (Program (Var "let")) )
+                , ( "in", Nothing )
+                , ( "let", Nothing )
                 , ( "then", Nothing )
-                , ( "zero", Just (Program (Var "zero")) )
+
+                -- Let expressions
+                , ( "let a = 5 in -(a, 3)"
+                  , Just
+                        (Program
+                            (Let
+                                "a"
+                                (Const 5)
+                                (Diff (Var "a") (Const 3))
+                            )
+                        )
+                  )
+
+                --- Liberal whitespace
+                , ( """
+                    let
+                        answer =
+                            -(10, 2)
+                    in
+                    zero?(answer)
+                    """
+                  , Just
+                        (Program
+                            (Let
+                                "answer"
+                                (Diff (Const 10) (Const 2))
+                                (Zero (Var "answer"))
+                            )
+                        )
+                  )
+
+                --- Expressions in both positions
+                , ( "let a = if zero?(0) then 5 else 8 in -(a, 3)"
+                  , Just
+                        (Program
+                            (Let
+                                "a"
+                                (If
+                                    (Zero (Const 0))
+                                    (Const 5)
+                                    (Const 8)
+                                )
+                                (Diff (Var "a") (Const 3))
+                            )
+                        )
+                  )
+
+                --- Nested let expressions
+                , ( "let a = 5 in let b = 3 in -(a, b)"
+                  , Just
+                        (Program
+                            (Let
+                                "a"
+                                (Const 5)
+                                (Let
+                                    "b"
+                                    (Const 3)
+                                    (Diff (Var "a") (Var "b"))
+                                )
+                            )
+                        )
+                  )
                 ]
         ]
