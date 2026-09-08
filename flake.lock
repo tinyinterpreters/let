@@ -13,27 +13,32 @@
         "type": "github"
       },
       "original": {
-        "id": "flake-utils",
-        "type": "indirect"
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
       }
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1783279667,
-        "narHash": "sha256-2l8yOB5aYd+05Q9V9Y1YhgbSa1j1o5QX+nvYs5FL80A=",
-        "rev": "f205b5574fd0cb7da5b702a2da51507b7f4fdd1b",
-        "type": "tarball",
-        "url": "https://releases.nixos.org/nixpkgs/nixpkgs-26.11pre1028110.f205b5574fd0/nixexprs.tar.xz"
+        "lastModified": 1788834054,
+        "narHash": "sha256-9dzTcXMtlknZyT47Vv1PnpGgN7UYA8WxxqyxsKdvYbo=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "e9b9cbecbf6c25ca26c150d78570e6332694a129",
+        "type": "github"
       },
       "original": {
-        "id": "nixpkgs",
-        "type": "indirect"
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
       }
     },
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "ti": "ti"
       }
     },
     "systems": {
@@ -48,6 +53,21 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "ti": {
+      "locked": {
+        "lastModified": 1788870588,
+        "narHash": "sha256-bpAzmUcCfm6eT4XvLNDqa3GbY417NZbmlUZyrtcAhyM=",
+        "owner": "tinyinterpreters",
+        "repo": "nix",
+        "rev": "ff22473898f928c0c4f2eaa485620efb992d71a6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tinyinterpreters",
+        "repo": "nix",
         "type": "github"
       }
     }
