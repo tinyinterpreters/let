@@ -211,6 +211,18 @@ suite =
                             , actual = [ I.TBool ]
                             }
                   )
+
+                --- LETPAR semantics
+                , ( "let x = 20 y = x in y", SucceedsWith (VNumber 10) )
+                , ( "let x = 20 y = -(x, 1) in y", SucceedsWith (VNumber 9) )
+                , ( "let a = 5 b = -(a, 1) c = -(b, 1) in c"
+                  , RuntimeError <| I.IdentifierNotFound "a"
+                  )
+                , ( "let x = 1 x = x in x", SucceedsWith (VNumber 10) )
+                , ( "let a = b b = 1 in a"
+                  , RuntimeError <| I.IdentifierNotFound "b"
+                  )
+                , ( "let x = 1 x = 2 in x", SucceedsWith (VNumber 2) )
                 ]
         ]
 
