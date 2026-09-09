@@ -165,5 +165,38 @@ suite =
                             )
                         )
                   )
+
+                --- Multiple bindings
+                , ( "let a = 5 b = 3 in -(a, b)"
+                  , Just
+                        (Program
+                            (Let
+                                [ Binding "a" (Const 5)
+                                , Binding "b" (Const 3)
+                                ]
+                                (Diff (Var "a") (Var "b"))
+                            )
+                        )
+                  )
+                , ( """
+                    let
+                        a = 5
+                        b = 3
+                        c =
+                            -(a, b)
+                    in
+                    c
+                    """
+                  , Just
+                        (Program
+                            (Let
+                                [ Binding "a" (Const 5)
+                                , Binding "b" (Const 3)
+                                , Binding "c" (Diff (Var "a") (Var "b"))
+                                ]
+                                (Var "c")
+                            )
+                        )
+                  )
                 ]
         ]
