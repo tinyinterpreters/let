@@ -82,7 +82,10 @@ varExpr =
 
 letExpr : Parser Expr
 letExpr =
-    P.succeed Let
+    P.succeed
+        (\name bound body ->
+            Let [ Binding name bound ] body
+        )
         |. L.keyword "let"
         |= id
         |. L.symbol "="

@@ -101,12 +101,15 @@ runExpr expr env =
                 Nothing ->
                     Err <| IdentifierNotFound name
 
-        Let name bound body ->
+        Let [ Binding name bound ] body ->
             runExpr bound env
                 |> Result.andThen
                     (\vBound ->
                         runExpr body (Env.extend name vBound env)
                     )
+
+        Let _ body ->
+            Debug.todo "Define the semantics of multiple bindings"
 
 
 evalDiff : Value -> Value -> Result RuntimeError Value
