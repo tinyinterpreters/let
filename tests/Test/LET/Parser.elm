@@ -99,8 +99,10 @@ suite =
                   , Just
                         (Program
                             (Let
-                                "a"
-                                (Const 5)
+                                [ Binding
+                                    "a"
+                                    (Const 5)
+                                ]
                                 (Diff (Var "a") (Const 3))
                             )
                         )
@@ -117,8 +119,10 @@ suite =
                   , Just
                         (Program
                             (Let
-                                "answer"
-                                (Diff (Const 10) (Const 2))
+                                [ Binding
+                                    "answer"
+                                    (Diff (Const 10) (Const 2))
+                                ]
                                 (Zero (Var "answer"))
                             )
                         )
@@ -129,12 +133,14 @@ suite =
                   , Just
                         (Program
                             (Let
-                                "a"
-                                (If
-                                    (Zero (Const 0))
-                                    (Const 5)
-                                    (Const 8)
-                                )
+                                [ Binding
+                                    "a"
+                                    (If
+                                        (Zero (Const 0))
+                                        (Const 5)
+                                        (Const 8)
+                                    )
+                                ]
                                 (Diff (Var "a") (Const 3))
                             )
                         )
@@ -145,11 +151,15 @@ suite =
                   , Just
                         (Program
                             (Let
-                                "a"
-                                (Const 5)
+                                [ Binding
+                                    "a"
+                                    (Const 5)
+                                ]
                                 (Let
-                                    "b"
-                                    (Const 3)
+                                    [ Binding
+                                        "b"
+                                        (Const 3)
+                                    ]
                                     (Diff (Var "a") (Var "b"))
                                 )
                             )
