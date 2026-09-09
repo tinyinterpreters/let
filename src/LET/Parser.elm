@@ -82,15 +82,18 @@ varExpr =
 
 letExpr : Parser Expr
 letExpr =
-    P.succeed
-        (\name bound body ->
-            Let [ Binding name bound ] body
-        )
+    P.succeed Let
         |. L.keyword "let"
+        |= oneOrMore binding
+        |. L.keyword "in"
+        |= P.lazy (\_ -> expr)
+
+
+binding : Parser Binding
+binding =
+    P.succeed Binding
         |= id
         |. L.symbol "="
-        |= P.lazy (\_ -> expr)
-        |. L.keyword "in"
         |= P.lazy (\_ -> expr)
 
 
@@ -114,3 +117,24 @@ keywords =
     , "let"
     , "then"
     ]
+
+
+
+-- HELPERS
+
+
+oneOrMore : Parser a -> Parser (List a)
+oneOrMore p =
+    P.succeed (::)
+        |= p
+        |= many p
+
+
+many : Parser a -> Parser (List a)
+many p =
+    P.loop [] <|
+        \rev ->
+            P.oneOf
+                [ P.map (\x -> P.Loop (x :: rev)) p
+                , P.succeed (P.Done (List.reverse rev))
+                ]
