@@ -92,7 +92,7 @@ referenced by:
 ![Let](diagram/Let.svg)
 
 ```
-Let      ::= 'let' Id '=' Expr 'in' Expr
+Let      ::= 'let' ( Id '=' Expr )+ 'in' Expr
 ```
 
 referenced by:
