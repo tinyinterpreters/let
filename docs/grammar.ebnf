@@ -10,7 +10,7 @@ Diff    ::= '-' '(' Expr ',' Expr ')'
 Zero    ::= 'zero?' '(' Expr ')'
 If      ::= 'if' Expr 'then' Expr 'else' Expr
 Var     ::= Id
-Let     ::= 'let' Id '=' Expr 'in' Expr
+Let     ::= 'let' (Id '=' Expr)+ 'in' Expr
 Number  ::= [0-9]+
 Id      ::= [a-z]+
 
