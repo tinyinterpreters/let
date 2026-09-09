@@ -102,27 +102,26 @@ runExpr expr env =
                     Err <| IdentifierNotFound name
 
         Let bindings body ->
-            evalBindings bindings env env
+            evalBindings bindings env
                 |> Result.andThen
                     (\bodyEnv ->
                         runExpr body bodyEnv
                     )
 
 
-evalBindings : List Binding -> Env -> Env -> Result RuntimeError Env
-evalBindings bindings bodyEnv initializerEnv =
+evalBindings : List Binding -> Env -> Result RuntimeError Env
+evalBindings bindings bodyEnv =
     case bindings of
         [] ->
             Ok bodyEnv
 
         (Binding name bound) :: restOfBindings ->
-            runExpr bound initializerEnv
+            runExpr bound bodyEnv
                 |> Result.andThen
                     (\vBound ->
                         evalBindings
                             restOfBindings
                             (Env.extend name vBound bodyEnv)
-                            initializerEnv
                     )
 
 
