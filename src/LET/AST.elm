@@ -1,5 +1,6 @@
 module LET.AST exposing
-    ( Expr(..)
+    ( Binding(..)
+    , Expr(..)
     , Id
     , Number
     , Program(..)
@@ -16,7 +17,11 @@ type Expr
     | Zero Expr
     | If Expr Expr Expr
     | Var Id
-    | Let Id Expr Expr
+    | Let (List Binding) Expr
+
+
+type Binding
+    = Binding Id Expr
 
 
 type alias Number =
