@@ -212,17 +212,56 @@ suite =
                             }
                   )
 
-                --- LETSEQ semantics
+                --- LETDEP semantics
                 , ( "let x = 20 y = x in y", SucceedsWith (VNumber 20) )
                 , ( "let x = 20 y = -(x, 1) in y", SucceedsWith (VNumber 19) )
                 , ( "let a = 5 b = -(a, 1) c = -(b, 1) in c"
                   , SucceedsWith (VNumber 3)
                   )
-                , ( "let a = b b = 1 in a"
-                  , RuntimeError <| I.IdentifierNotFound "b"
+
+                --- Allow a forward reference
+                , ( "let a = b b = 1 in a", SucceedsWith (VNumber 1) )
+
+                --- Reject duplicate names anywhere in the binding group
+                , ( "let x = 1 y = 2 x = 3 in y"
+                  , StaticError <| I.DuplicateBinding "x"
                   )
-                , ( "let x = 1 x = x in x", SucceedsWith (VNumber 1) )
-                , ( "let x = 1 x = 2 in x", SucceedsWith (VNumber 2) )
+
+                --- A tangled acyclic dependency graph that requires dependency-ordered evaluation
+                , ( """
+                    let
+                        result = if ready then -(a, b) else -(b, a)
+                        a = if zero?(d) then c else -(c, d)
+                        ready = zero?(-(g, e))
+                        b = if zero?(-(f, 1)) then -(e, f) else e
+                        c = -(g, h)
+                        d = -(h, h)
+                        e = g
+                        f = 1
+                        h = 2
+                        g = 10
+                    in
+                    result
+                    """
+                  , SucceedsWith (VNumber -1)
+                  )
+
+                --- Detect a cycle embedded in an otherwise acyclic dependency graph
+                , ( """
+                    let
+                        result = if ready then a else 0
+                        ready = zero?(-(x, x))
+                        a = -(b, 1)
+                        b = if zero?(c) then 10 else c
+                        c = -(d, 1)
+                        d = a
+                        x = 5
+                    in
+                    result
+                    """
+                  , StaticError I.CyclicBindings
+                    -- a -> b -> c -> d -> a
+                  )
                 ]
         ]
 
@@ -230,6 +269,7 @@ suite =
 type Expected a
     = SucceedsWith a
     | SyntaxError
+    | StaticError I.StaticError
     | RuntimeError I.RuntimeError
 
 
@@ -253,6 +293,17 @@ testRun f ( input, expectedOutput ) =
                     Expect.pass
 
                 ( Err (I.RuntimeError actual), RuntimeError expected ) ->
+                    if actual == expected then
+                        Expect.pass
+
+                    else
+                        Expect.fail <|
+                            Debug.toString
+                                { expected = expected
+                                , actual = actual
+                                }
+
+                ( Err (I.StaticError actual), StaticError expected ) ->
                     if actual == expected then
                         Expect.pass
 
