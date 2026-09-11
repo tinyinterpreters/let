@@ -1,6 +1,7 @@
 module LET.Interpreter exposing
     ( Error(..)
     , RuntimeError(..)
+    , StaticError(..)
     , Type(..)
     , Value(..)
     , run
@@ -18,7 +19,13 @@ type Value
 
 type Error
     = SyntaxError P.Error
+    | StaticError StaticError
     | RuntimeError RuntimeError
+
+
+type StaticError
+    = DuplicateBinding Id
+    | CyclicBindings
 
 
 type RuntimeError
