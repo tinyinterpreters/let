@@ -103,23 +103,26 @@ runExpr expr env =
 
         Let bindings body ->
             evalBindings bindings env env
-                |> Result.andThen (runExpr body)
+                |> Result.andThen
+                    (\bodyEnv ->
+                        runExpr body bodyEnv
+                    )
 
 
 evalBindings : List Binding -> Env -> Env -> Result RuntimeError Env
-evalBindings bindings currentEnv originalEnv =
+evalBindings bindings bodyEnv initializerEnv =
     case bindings of
         [] ->
-            Ok currentEnv
+            Ok bodyEnv
 
         (Binding name bound) :: restOfBindings ->
-            runExpr bound originalEnv
+            runExpr bound initializerEnv
                 |> Result.andThen
                     (\vBound ->
                         evalBindings
                             restOfBindings
-                            (Env.extend name vBound currentEnv)
-                            originalEnv
+                            (Env.extend name vBound bodyEnv)
+                            initializerEnv
                     )
 
 
