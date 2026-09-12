@@ -224,4 +224,22 @@ sort =
 
 resolveDependenciesOfInitializers : List Binding -> Result StaticError (List Binding)
 resolveDependenciesOfInitializers =
-    Debug.todo "Implement resolveDependenciesOfInitializers"
+    traverse
+        (\(Binding name initializer) ->
+            resolveDependenciesOfExpr initializer
+                |> Result.map (Binding name)
+        )
+
+
+traverse : (a -> Result e b) -> List a -> Result e (List b)
+traverse f xs =
+    case xs of
+        [] ->
+            Ok []
+
+        x :: restXs ->
+            f x
+                |> Result.andThen
+                    (\y ->
+                        Result.map ((::) y) (traverse f restXs)
+                    )
