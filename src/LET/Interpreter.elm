@@ -4,6 +4,7 @@ module LET.Interpreter exposing
     , StaticError(..)
     , Type(..)
     , Value(..)
+    , resolveDependencies
     , run
     )
 
@@ -185,3 +186,42 @@ typeOf v =
 
         VBool _ ->
             TBool
+
+
+
+-- STATIC ANALYSIS
+
+
+resolveDependencies : AST.Program -> Result StaticError AST.Program
+resolveDependencies (Program expr) =
+    expr
+        |> resolveDependenciesOfExpr
+        |> Result.map Program
+
+
+resolveDependenciesOfExpr : Expr -> Result StaticError Expr
+resolveDependenciesOfExpr expr =
+    case expr of
+        Let bindings body ->
+            sort bindings
+                |> Result.andThen
+                    (\dependencyOrderedBindings ->
+                        resolveDependenciesOfInitializers dependencyOrderedBindings
+                            |> Result.map
+                                (\resolvedBindings ->
+                                    Let resolvedBindings body
+                                )
+                    )
+
+        _ ->
+            Ok expr
+
+
+sort : List Binding -> Result StaticError (List Binding)
+sort =
+    Debug.todo "Implement sort"
+
+
+resolveDependenciesOfInitializers : List Binding -> Result StaticError (List Binding)
+resolveDependenciesOfInitializers =
+    Debug.todo "Implement resolveDependenciesOfInitializers"
