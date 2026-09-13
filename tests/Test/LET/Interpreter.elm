@@ -263,6 +263,17 @@ suite =
                     -- a -> b -> c -> d -> a
                   )
 
+                --- An outer cycle is reported before static errors in nested let expressions
+                , ( """
+                    let
+                        a = let x = b x = 1 in x
+                        b = a
+                    in
+                    a
+                    """
+                  , StaticError I.CyclicBindings
+                  )
+
                 --- Resolve a forward reference in a nested let expression
                 , ( "-(let a = b b = 1 in a, 0)"
                   , SucceedsWith (VNumber 1)
