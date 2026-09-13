@@ -49,8 +49,13 @@ run : String -> Result Error Value
 run input =
     case P.parse input of
         Ok program ->
-            runProgram program
-                |> Result.mapError RuntimeError
+            case resolveDependencies program of
+                Ok resolvedProgram ->
+                    runProgram resolvedProgram
+                        |> Result.mapError RuntimeError
+
+                Err err ->
+                    Err <| StaticError err
 
         Err err ->
             Err <| SyntaxError err
