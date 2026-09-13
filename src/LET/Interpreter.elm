@@ -210,14 +210,39 @@ resolveDependencies (Program expr) =
 resolveDependenciesOfExpr : Expr -> Result StaticError Expr
 resolveDependenciesOfExpr expr =
     case expr of
+        Diff a b ->
+            resolveDependenciesOfExpr a
+                |> Result.andThen
+                    (\x ->
+                        resolveDependenciesOfExpr b
+                            |> Result.map (Diff x)
+                    )
+
+        Zero a ->
+            resolveDependenciesOfExpr a
+                |> Result.map Zero
+
+        If condition consequent alternative ->
+            resolveDependenciesOfExpr condition
+                |> Result.andThen
+                    (\b ->
+                        resolveDependenciesOfExpr consequent
+                            |> Result.andThen
+                                (\t ->
+                                    resolveDependenciesOfExpr alternative
+                                        |> Result.map (If b t)
+                                )
+                    )
+
         Let bindings body ->
             sort bindings
                 |> Result.andThen
                     (\dependencyOrderedBindings ->
                         resolveDependenciesOfInitializers dependencyOrderedBindings
-                            |> Result.map
+                            |> Result.andThen
                                 (\resolvedBindings ->
-                                    Let resolvedBindings body
+                                    resolveDependenciesOfExpr body
+                                        |> Result.map (Let resolvedBindings)
                                 )
                     )
 
@@ -275,8 +300,14 @@ sortHelper boundNames initializers edges bindings =
 
         (Binding name initializer) :: restOfBindings ->
             let
-                edgesForBinding =
+                freeVariables =
                     AST.freeVariables initializer
+
+                freeVariablesWithoutSelfReference =
+                    Set.diff freeVariables (Set.singleton name)
+
+                edgesForBinding =
+                    freeVariablesWithoutSelfReference
                         |> Set.map (\fv -> ( fv, name ))
             in
             sortHelper
