@@ -237,9 +237,9 @@ suite =
                         c = -(g, h)
                         d = -(h, h)
                         e = g
-                        f = 1
+                        f = i
                         h = 2
-                        g = 10
+                        g = x
                     in
                     result
                     """
