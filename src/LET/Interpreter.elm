@@ -8,9 +8,12 @@ module LET.Interpreter exposing
     , run
     )
 
+import Dict exposing (Dict)
+import DirectedGraph exposing (Edge, Vertex)
 import LET.AST as AST exposing (..)
 import LET.Env as Env
 import LET.Parser as P
+import Set exposing (Set)
 
 
 type Value
@@ -218,8 +221,64 @@ resolveDependenciesOfExpr expr =
 
 
 sort : List Binding -> Result StaticError (List Binding)
-sort =
-    Debug.todo "Implement sort"
+sort bindings =
+    bindings
+        |> List.foldr
+            (\(Binding name initializer) resultState ->
+                resultState
+                    |> Result.andThen
+                        (\state ->
+                            if Set.member name state.names then
+                                Err <| DuplicateBinding name
+
+                            else
+                                Ok
+                                    { state
+                                        | names = Set.insert name state.names
+                                        , initializers = Dict.insert name initializer state.initializers
+                                    }
+                        )
+            )
+            (Ok { names = Set.empty, initializers = Dict.empty })
+        |> Result.andThen
+            (\{ names, initializers } ->
+                sortHelper names initializers Set.empty bindings
+            )
+
+
+sortHelper : Set Id -> Dict Id Expr -> Set Edge -> List Binding -> Result StaticError (List Binding)
+sortHelper boundNames initializers edges bindings =
+    case bindings of
+        [] ->
+            let
+                digraph =
+                    DirectedGraph.new boundNames edges
+            in
+            case DirectedGraph.tsort digraph of
+                Just names ->
+                    names
+                        |> List.filterMap
+                            (\name ->
+                                initializers
+                                    |> Dict.get name
+                                    |> Maybe.map (Binding name)
+                            )
+                        |> Ok
+
+                Nothing ->
+                    Err CyclicBindings
+
+        (Binding name initializer) :: restOfBindings ->
+            let
+                edgesForBinding =
+                    AST.freeVariables initializer
+                        |> Set.map (\fv -> ( fv, name ))
+            in
+            sortHelper
+                boundNames
+                initializers
+                (Set.union edges edgesForBinding)
+                restOfBindings
 
 
 resolveDependenciesOfInitializers : List Binding -> Result StaticError (List Binding)
