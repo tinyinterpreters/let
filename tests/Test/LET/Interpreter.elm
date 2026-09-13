@@ -262,6 +262,16 @@ suite =
                   , StaticError I.CyclicBindings
                     -- a -> b -> c -> d -> a
                   )
+
+                --- Resolve a forward reference in a nested let expression
+                , ( "-(let a = b b = 1 in a, 0)"
+                  , SucceedsWith (VNumber 1)
+                  )
+
+                --- Resolve a forward reference in a nested let body
+                , ( "let x = 10 in let a = b b = x in a"
+                  , SucceedsWith (VNumber 10)
+                  )
                 ]
         ]
 
