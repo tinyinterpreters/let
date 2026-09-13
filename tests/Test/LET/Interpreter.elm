@@ -272,6 +272,17 @@ suite =
                 , ( "let x = 10 in let a = b b = x in a"
                   , SucceedsWith (VNumber 10)
                   )
+
+                --- A nested self-reference can depend on an outer sibling binding
+                , ( """
+                    let
+                        z = let a = a in a
+                        a = 1
+                    in
+                    z
+                    """
+                  , SucceedsWith (VNumber 1)
+                  )
                 ]
         ]
 
