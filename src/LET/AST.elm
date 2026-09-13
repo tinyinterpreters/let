@@ -74,11 +74,18 @@ analyzeBindings bindings =
         [] ->
             ( Set.empty, Set.empty )
 
-        (Binding name bound) :: restOfBindings ->
+        (Binding name initializer) :: restOfBindings ->
             let
-                ( boundNames, initializerFreeVariables ) =
+                ( boundNames, initializersFreeVariables ) =
                     analyzeBindings restOfBindings
+
+                initializerFreeVariables =
+                    freeVariables initializer
             in
-            ( Set.insert name boundNames
-            , Set.union (freeVariables bound) initializerFreeVariables
+            ( if Set.member name initializerFreeVariables then
+                boundNames
+
+              else
+                Set.insert name boundNames
+            , Set.union initializerFreeVariables initializersFreeVariables
             )

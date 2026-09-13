@@ -41,7 +41,6 @@ suite =
           , ( "let x = 1 in -(x, y)", [ "y" ] )
 
           -- Binding names are bound throughout the binding group
-          , ( "let x = x in x", [] )
           , ( "let x = 1 y = x in y", [] )
           , ( "let x = y y = 1 in x", [] )
           , ( "let x = y y = x in x", [] )
@@ -116,6 +115,17 @@ suite =
               a
               """
             , []
+            )
+
+          -- A binding does not bind references in its own initializer
+          , ( "let x = x in x", [ "x" ] )
+          , ( """
+              let
+                  z = let a = a in a
+              in
+              z
+              """
+            , [ "a" ]
             )
           ]
             |> List.map (Tuple.mapSecond (Just << Set.fromList))
