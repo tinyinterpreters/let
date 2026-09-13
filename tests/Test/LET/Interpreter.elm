@@ -294,6 +294,39 @@ suite =
                     """
                   , SucceedsWith (VNumber 1)
                   )
+
+                --- A self-reference can also depend on a sibling binding
+                , ( """
+                    let
+                        x = -(x, y)
+                        y = 1
+                    in
+                    x
+                    """
+                  , SucceedsWith (VNumber 9)
+                  )
+
+                --- A sibling can depend on a self-referencing binding
+                , ( """
+                    let
+                        y = x
+                        x = -(x, 1)
+                    in
+                    y
+                    """
+                  , SucceedsWith (VNumber 9)
+                  )
+
+                --- A self-reference does not prevent a real sibling cycle
+                , ( """
+                    let
+                        x = -(x, y)
+                        y = x
+                    in
+                    y
+                    """
+                  , StaticError I.CyclicBindings
+                  )
                 ]
         ]
 
