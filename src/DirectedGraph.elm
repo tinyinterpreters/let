@@ -57,8 +57,7 @@ addVertex v maybeVertices =
 
 
 type alias TsortState =
-    { time : Int
-    , color : Dict Vertex Color
+    { color : Dict Vertex Color
     , vertices : List Vertex
     }
 
@@ -83,7 +82,7 @@ tsort (DirectedGraph adj) =
                 )
                 maybePrevState
         )
-        (Just { time = 0, color = Dict.empty, vertices = [] })
+        (Just { color = Dict.empty, vertices = [] })
         adj
         |> Maybe.map .vertices
 
@@ -113,18 +112,12 @@ visit u vs state adj =
                 )
                 maybePrevState
         )
-        (Just
-            { state
-                | time = state.time + 1
-                , color = Dict.insert u Gray state.color
-            }
-        )
+        (Just { state | color = Dict.insert u Gray state.color })
         vs
         |> Maybe.map
             (\s ->
                 { s
-                    | time = s.time + 1
-                    , color = Dict.insert u Black s.color
+                    | color = Dict.insert u Black s.color
                     , vertices = u :: s.vertices
                 }
             )
