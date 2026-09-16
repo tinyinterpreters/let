@@ -1,10 +1,18 @@
-# LETSEQ
+# LET — Multiple Bindings
 
-LETSEQ gives the multiple-binding `let` expressions from the [`multiple-bindings`](https://github.com/tinyinterpreters/let/tree/multiple-bindings) branch sequential binding semantics.
+This branch extends [LET](https://github.com/tinyinterpreters/let) so a single `let` expression can contain multiple bindings:
 
-Bindings are evaluated in source order. After each initializer is evaluated, its binding becomes available to the initializers that follow it.
+```txt
+let
+    a = 5
+    b = 3
+in
+-(a, b)
+```
 
-For example:
+The grammar, AST, and parser support these expressions, but their evaluation semantics are deliberately left undefined.
+
+Multiple bindings introduce a question that single-binding `let` never had to answer:
 
 ```txt
 let
@@ -14,38 +22,13 @@ in
 y
 ```
 
-The initializer for `y` can see the earlier binding `x = 20`, so the result is `20`.
+What does the `x` in `y = x` refer to: the sibling binding `x = 20`, or an `x` from the surrounding environment?
 
-Bindings can build on one another:
-
-```txt
-let
-    a = 5
-    b = -(a, 1)
-    c = -(b, 1)
-in
-c
-```
-
-This evaluates to `3`.
-
-Source order therefore matters. A binding cannot refer to one that appears later:
-
-```txt
-let
-    a = b
-    b = 1
-in
-a
-```
-
-When `a` is evaluated, `b` has not been introduced yet, so evaluation fails with an identifier-not-found error.
-
-For a closer look, read [LETSEQ: Sequential Binding Semantics for `let` Expressions](https://blog.tinyinterpreters.dev/posts/letseq/).
+For a closer look at the syntax and the different meanings we could give it, read [Multiple-Binding `let` Expressions: Syntax Before Semantics](https://blog.tinyinterpreters.dev/posts/multiple-binding-let-expressions/).
 
 ## Try it
 
-You'll need [Nix](https://nixos.org/) with flakes enabled.
+To explore the parser, you'll need [Nix](https://nixos.org/) with flakes enabled.
 
 ```bash
 nix develop
@@ -55,14 +38,14 @@ elm repl
 Then:
 
 ```elm
-import LET.Interpreter as I
+import LET.Parser as P
 
-I.run "let x = 20 y = x in y"
--- Ok (VNumber 20)
-
-I.run "let a = 5 b = -(a, 1) c = -(b, 1) in c"
--- Ok (VNumber 3)
-
-I.run "let a = b b = 1 in a"
--- Err (RuntimeError (IdentifierNotFound "b"))
+P.parse """
+    let
+        a = 5
+        b = 3
+    in
+    -(a, b)
+"""
+-- Ok (Program (Let [Binding "a" (Const 5),Binding "b" (Const 3)] (Diff (Var "a") (Var "b"))))
 ```
