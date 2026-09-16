@@ -1,10 +1,10 @@
-# LETPAR
+# LETSEQ
 
-LETPAR gives the multiple-binding `let` expressions from the [`multiple-bindings`](https://github.com/tinyinterpreters/let/tree/multiple-bindings) branch parallel binding semantics.
+LETSEQ gives the multiple-binding `let` expressions from the [`multiple-bindings`](https://github.com/tinyinterpreters/let/tree/multiple-bindings) branch sequential binding semantics.
 
-Every initializer is evaluated in the incoming environment. The new bindings become available together only when evaluating the body.
+Bindings are evaluated in source order. After each initializer is evaluated, its binding becomes available to the initializers that follow it.
 
-For example, the initial environment contains `x = 10`:
+For example:
 
 ```txt
 let
@@ -14,21 +14,34 @@ in
 y
 ```
 
-The initializer for `y` sees the incoming `x = 10`, not its sibling binding `x = 20`, so the result is `10`.
+The initializer for `y` can see the earlier binding `x = 20`, so the result is `20`.
 
-Sibling bindings therefore cannot depend on one another:
+Bindings can build on one another:
 
 ```txt
 let
     a = 5
     b = -(a, 1)
+    c = -(b, 1)
 in
-b
+c
 ```
 
-Because there is no `a` in the incoming environment, evaluating `b`'s initializer fails with an identifier-not-found error.
+This evaluates to `3`.
 
-For a closer look, read [LETPAR: Parallel Binding Semantics for `let` Expressions](https://blog.tinyinterpreters.dev/posts/letpar/).
+Source order therefore matters. A binding cannot refer to one that appears later:
+
+```txt
+let
+    a = b
+    b = 1
+in
+a
+```
+
+When `a` is evaluated, `b` has not been introduced yet, so evaluation fails with an identifier-not-found error.
+
+For a closer look, read [LETSEQ: Sequential Binding Semantics for `let` Expressions](https://blog.tinyinterpreters.dev/posts/letseq/).
 
 To try it, you'll need [Nix](https://zero-to-nix.com/start/install/) with flakes enabled.
 
@@ -43,8 +56,11 @@ Then:
 import LET.Interpreter as I
 
 I.run "let x = 20 y = x in y"
--- Ok (VNumber 10)
+-- Ok (VNumber 20)
 
-I.run "let a = 5 b = -(a, 1) in b"
--- Err (RuntimeError (IdentifierNotFound "a"))
+I.run "let a = 5 b = -(a, 1) c = -(b, 1) in c"
+-- Ok (VNumber 3)
+
+I.run "let a = b b = 1 in a"
+-- Err (RuntimeError (IdentifierNotFound "b"))
 ```
