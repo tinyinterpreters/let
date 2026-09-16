@@ -1,30 +1,32 @@
-# LET
+# LET — Multiple Bindings
 
-LET extends [VAR](https://github.com/tinyinterpreters/var) with `let` expressions:
-
-```txt
-let a = 5 in -(a, 3)
-```
-
-A `let` expression evaluates the bound expression first, then binds its resulting value to a name while evaluating the body:
+This branch extends [LET](https://github.com/tinyinterpreters/let) so a single `let` expression can contain multiple bindings:
 
 ```txt
-let a = 5 in -(a, 3)
-→ VNumber 2
+let
+    a = 5
+    b = 3
+in
+-(a, b)
 ```
 
-The binding's scope is the body. This means an inner `let` can shadow an outer binding:
+The grammar, AST, and parser support these expressions, but their evaluation semantics are deliberately left undefined.
+
+Multiple bindings introduce a question that single-binding `let` never had to answer:
 
 ```txt
-let a = 5 in -(let a = 3 in a, a)
-→ VNumber -2
+let
+    x = 20
+    y = x
+in
+y
 ```
 
-The inner body sees `a = 3`, while the second operand still sees the outer `a = 5`.
+What does the `x` in `y = x` refer to: the sibling binding `x = 20`, or an `x` from the surrounding environment?
 
-For a closer look, read [LET: Introducing Local Bindings and Scope](https://blog.tinyinterpreters.dev/posts/let/).
+For a closer look at the syntax and the different meanings we could give it, read [Multiple-Binding `let` Expressions: Syntax Before Semantics](https://blog.tinyinterpreters.dev/posts/multiple-binding-let-expressions/).
 
-To try it, you'll need [Nix](https://zero-to-nix.com/start/install/) with flakes enabled.
+To explore the parser, you'll need [Nix](https://zero-to-nix.com/start/install/) with flakes enabled.
 
 ```bash
 nix develop
@@ -34,11 +36,14 @@ elm repl
 Then:
 
 ```elm
-import LET.Interpreter as I
+import LET.Parser as P
 
-I.run "let a = 5 in -(a, 3)"
--- Ok (VNumber 2)
-
-I.run "let a = 5 in -(let a = 3 in a, a)"
--- Ok (VNumber -2)
+P.parse """
+    let
+        a = 5
+        b = 3
+    in
+    -(a, b)
+"""
+-- Ok (Program (Let [Binding "a" (Const 5),Binding "b" (Const 3)] (Diff (Var "a") (Var "b"))))
 ```
