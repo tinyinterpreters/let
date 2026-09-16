@@ -1,18 +1,10 @@
-# LET — Multiple Bindings
+# LETPAR
 
-This branch extends [LET](https://github.com/tinyinterpreters/let) so a single `let` expression can contain multiple bindings:
+LETPAR gives the multiple-binding `let` expressions from the [`multiple-bindings`](https://github.com/tinyinterpreters/let/tree/multiple-bindings) branch parallel binding semantics.
 
-```txt
-let
-    a = 5
-    b = 3
-in
--(a, b)
-```
+Every initializer is evaluated in the incoming environment. The new bindings become available together only when evaluating the body.
 
-The grammar, AST, and parser support these expressions, but their evaluation semantics are deliberately left undefined.
-
-Multiple bindings introduce a question that single-binding `let` never had to answer:
+For example, the initial environment contains `x = 10`:
 
 ```txt
 let
@@ -22,11 +14,23 @@ in
 y
 ```
 
-What does the `x` in `y = x` refer to: the sibling binding `x = 20`, or an `x` from the surrounding environment?
+The initializer for `y` sees the incoming `x = 10`, not its sibling binding `x = 20`, so the result is `10`.
 
-For a closer look at the syntax and the different meanings we could give it, read [Multiple-Binding `let` Expressions: Syntax Before Semantics](https://blog.tinyinterpreters.dev/posts/multiple-binding-let-expressions/).
+Sibling bindings therefore cannot depend on one another:
 
-To explore the parser, you'll need [Nix](https://zero-to-nix.com/start/install/) with flakes enabled.
+```txt
+let
+    a = 5
+    b = -(a, 1)
+in
+b
+```
+
+Because there is no `a` in the incoming environment, evaluating `b`'s initializer fails with an identifier-not-found error.
+
+For a closer look, read [LETPAR: Parallel Binding Semantics for `let` Expressions](https://blog.tinyinterpreters.dev/posts/letpar/).
+
+To try it, you'll need [Nix](https://zero-to-nix.com/start/install/) with flakes enabled.
 
 ```bash
 nix develop
@@ -36,14 +40,11 @@ elm repl
 Then:
 
 ```elm
-import LET.Parser as P
+import LET.Interpreter as I
 
-P.parse """
-    let
-        a = 5
-        b = 3
-    in
-    -(a, b)
-"""
--- Ok (Program (Let [Binding "a" (Const 5),Binding "b" (Const 3)] (Diff (Var "a") (Var "b"))))
+I.run "let x = 20 y = x in y"
+-- Ok (VNumber 10)
+
+I.run "let a = 5 b = -(a, 1) in b"
+-- Err (RuntimeError (IdentifierNotFound "a"))
 ```
