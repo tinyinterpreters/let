@@ -10,21 +10,23 @@ A `let` expression evaluates the bound expression first, then binds its resultin
 
 ```txt
 let a = 5 in -(a, 3)
-→ VNumber 2
+-> VNumber 2
 ```
 
 The binding's scope is the body. This means an inner `let` can shadow an outer binding:
 
 ```txt
 let a = 5 in -(let a = 3 in a, a)
-→ VNumber -2
+-> VNumber -2
 ```
 
 The inner body sees `a = 3`, while the second operand still sees the outer `a = 5`.
 
 For a closer look, read [LET: Introducing Local Bindings and Scope](https://blog.tinyinterpreters.dev/posts/let/).
 
-To try it, you'll need [Nix](https://zero-to-nix.com/start/install/) with flakes enabled.
+## Try it
+
+You'll need [Nix](https://nixos.org/) with flakes enabled.
 
 ```bash
 nix develop
